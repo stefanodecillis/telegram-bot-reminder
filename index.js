@@ -108,8 +108,8 @@ function randomSticker(stickers) {
 async function findWhoHasToPay(paymentsCollection) {
     const currentMonthDate = new Date();
     currentMonthDate.setDate(1);
-    const netflixPayments = await paymentsCollection.find({ service: Service.NETFLIX }).sort({ date: 1 }).limit(netflixUsers.length - 1).toArray();
-    const spotifyPayments = await paymentsCollection.find({ service: Service.SPOTIFY }).sort({ date: 1 }).limit(spotifyUsers.length - 1).toArray();
+    const netflixPayments = await paymentsCollection.find({ service: Service.NETFLIX }).sort({ date: -1 }).limit(netflixUsers.length - 1).toArray();
+    const spotifyPayments = await paymentsCollection.find({ service: Service.SPOTIFY }).sort({ date: -1 }).limit(spotifyUsers.length - 1).toArray();
 
     // check if someone has already paid this month
     const netflixUsersWhoHasAlreadyPaid = netflixPayments.filter(payment => new Date(payment.date).getMonth() == currentMonthDate.getMonth());
