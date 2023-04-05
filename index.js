@@ -41,21 +41,40 @@ async function main() {
 
     bot.onText(/\/netflix/, async (msg, match) => {
         const chatId = msg.chat.id;
+        const result = await findWhoHasToPay(paymentsCollection)
 
-        insertPayment(paymentsCollection, msg.from.first_name, Service.NETFLIX);
-
-        bot.sendMessage(chatId, "Brav' " + msg.from.first_name + " hai pagato  Netflix!");
-        bot.sendSticker(chatId, randomSticker(stickers));
+        if (result.netflixUsersWhoHasToPay) {
+            //verify that the user is the one who has to pay
+            if (result.netflixUsersWhoHasToPay === msg.from.first_name) {
+                insertPayment(paymentsCollection, msg.from.first_name, Service.NETFLIX);
+                bot.sendMessage(chatId, "Brav' " + msg.from.first_name + " hai pagato Netflix!");
+                bot.sendSticker(chatId, randomSticker(stickers));
+            } else {
+                bot.sendMessage(chatId, "Non è il tuo turno di pagare!");
+            }
+        } else {
+            bot.sendMessage(chatId, "Sta già pagato!");
+        }
     });
 
     bot.onText(/\/spotify/, async (msg, match) => {
 
         const chatId = msg.chat.id;
 
-        insertPayment(paymentsCollection, msg.from.first_name, Service.SPOTIFY);
+        const result = await findWhoHasToPay(paymentsCollection)
 
-        bot.sendMessage(chatId, "Brav' " + msg.from.first_name + " hai pagato Spotify!");
-        bot.sendSticker(chatId, randomSticker(stickers));
+        if (result.spotifyUsersWhoHasToPay) {
+            //verify that the user is the one who has to pay
+            if (result.spotifyUsersWhoHasToPay === msg.from.first_name) {
+                insertPayment(paymentsCollection, msg.from.first_name, Service.SPOTIFY);
+                bot.sendMessage(chatId, "Brav' " + msg.from.first_name + " hai pagato Spotify!");
+                bot.sendSticker(chatId, randomSticker(stickers));
+            } else {
+                bot.sendMessage(chatId, "Non è il tuo turno di pagare!");
+            }
+        } else {
+            bot.sendMessage(chatId, "Sta già pagato!");
+        }
     });
 
     // bot.on('message', async (msg) => {
