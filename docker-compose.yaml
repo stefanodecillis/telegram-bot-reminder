@@ -19,3 +19,7 @@ services:
       - MONGO_URL=<mongo_url>
       - TELEGRAM_BOT_TOKEN=<token>
       - TELEGRAM_CHAT_ID=<chat_id>
+      - NETFLIX_USERS=user1,user2
+      - SPOTIFY_USERS=user1,user2
+      - NETFLIX_USERS_EXCLUDE=user1,user2
+      - SPOTIFY_USERS_EXCLUDE=user1,user2

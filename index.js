@@ -6,8 +6,12 @@ const telegramChatID = parseInt(process.env.TELEGRAM_CHAT_ID);
 
 var url = process.env.MONGO_URL;
 
-const netflixUsers = ['Fabio', 'Antonio', 'Stefano', 'Rossella', 'Federica'];
-const spotifyUsers = ['Antonio', 'Fabio', 'Federica', 'Stefano', 'Antonella'];
+const netflixUsers = process.env.NETFLIX_USERS.split(',');
+const spotifyUsers = process.env.SPOTIFY_USERS.split(',');
+
+// users who don't want to be notified since they own the service
+const netflixExcludedUsers = process.env.NETFLIX_USERS_EXCLUDE.split(',');
+const spotifyExcludedUsers = process.env.SPOTIFY_USERS_EXCLUDE.split(',');
 
 /**
  * Stickers
@@ -95,9 +99,9 @@ async function main() {
             if (netflixUsersWhoHasToPay && spotifyUsersWhoHasToPay) {
                 await bot.sendSticker(telegramChatID, randomSticker(awarenessStickers));
             }
-            if (netflixUsersWhoHasToPay)
+            if (netflixUsersWhoHasToPay && !netflixExcludedUsers.includes(netflixUsersWhoHasToPay))
                 bot.sendMessage(telegramChatID, `Ricordati <strong>${netflixUsersWhoHasToPay}</strong> di pagare Netflix 📺`, { parse_mode: "HTML" });
-            if (spotifyUsersWhoHasToPay)
+            if (spotifyUsersWhoHasToPay && !spotifyExcludedUsers.includes(spotifyUsersWhoHasToPay))
                 bot.sendMessage(telegramChatID, `Ricordati <strong>${spotifyUsersWhoHasToPay}</strong> di pagare Spotify 🎧`, { parse_mode: "HTML" });
         })
     });
