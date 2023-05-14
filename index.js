@@ -96,13 +96,17 @@ async function main() {
     cron.schedule('30 19 */4 * *', function () {
         findWhoHasToPay(paymentsCollection).then(async (result) => {
             const { netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay } = result;
-            if (netflixUsersWhoHasToPay && spotifyUsersWhoHasToPay) {
+
+            if (netflixUsersWhoHasToPay || spotifyUsersWhoHasToPay) {
+                // catch the case where users already paid since it owns the service
+                const morePayers = await autoPayOwners(netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay);
+                if (!morePayers) return;
                 await bot.sendSticker(telegramChatID, randomSticker(awarenessStickers));
             }
             if (netflixUsersWhoHasToPay && !netflixExcludedUsers.includes(netflixUsersWhoHasToPay))
-                bot.sendMessage(telegramChatID, `Ricordati <strong>${netflixUsersWhoHasToPay}</strong> di pagare Netflix 📺`, { parse_mode: "HTML" });
+                await bot.sendMessage(telegramChatID, `Ricordati <strong>${netflixUsersWhoHasToPay}</strong> di pagare Netflix 📺`, { parse_mode: "HTML" });
             if (spotifyUsersWhoHasToPay && !spotifyExcludedUsers.includes(spotifyUsersWhoHasToPay))
-                bot.sendMessage(telegramChatID, `Ricordati <strong>${spotifyUsersWhoHasToPay}</strong> di pagare Spotify 🎧`, { parse_mode: "HTML" });
+                await bot.sendMessage(telegramChatID, `Ricordati <strong>${spotifyUsersWhoHasToPay}</strong> di pagare Spotify 🎧`, { parse_mode: "HTML" });
         })
     });
 }
@@ -110,6 +114,21 @@ async function main() {
 async function insertPayment(paymentsCollection, user, service) {
     const payment = new Payment(user, service);
     await paymentsCollection.insertOne(payment);
+}
+
+async function autoPayOwners(netflixUser, spotifyUser) {
+    let owners = 0;
+    if (netflixUser && netflixExcludedUsers.includes(netflixUser)) {
+        await insertPayment(paymentsCollection, netflixUser, Service.NETFLIX);
+        owners++;
+    }
+
+    if (spotifyUser && spotifyExcludedUsers.includes(spotifyUser)) {
+        await insertPayment(paymentsCollection, spotifyUser, Service.SPOTIFY);
+        owners++;
+    }
+
+    return owners < 2;
 }
 
 isIncludedInArray = (array, element) => {
