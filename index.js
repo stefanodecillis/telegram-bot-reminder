@@ -36,7 +36,9 @@ class Payment {
 const token = process.env.TELEGRAM_BOT_TOKEN;
 
 // Create a bot that uses 'polling' to fetch new updates
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {
+    polling: true,
+});
 
 async function main() {
     const mongo = await MongoClient.connect(url);
@@ -92,14 +94,16 @@ async function main() {
     //     console.log('msg', msg.sticker.file_id);
     // });
 
-    // every four days at 19:30
+    // every four days at 19:30   
     cron.schedule('30 19 */4 * *', function () {
         findWhoHasToPay(paymentsCollection).then(async (result) => {
             const { netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay } = result;
+            console.log('computing')
+            console.log(netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay)
 
             if (netflixUsersWhoHasToPay || spotifyUsersWhoHasToPay) {
                 // catch the case where users already paid since it owns the service
-                const morePayers = await autoPayOwners(netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay);
+                const morePayers = await autoPayOwners(paymentsCollection, netflixUsersWhoHasToPay, spotifyUsersWhoHasToPay);
                 if (!morePayers) return;
                 await bot.sendSticker(telegramChatID, randomSticker(awarenessStickers));
             }
@@ -116,7 +120,7 @@ async function insertPayment(paymentsCollection, user, service) {
     await paymentsCollection.insertOne(payment);
 }
 
-async function autoPayOwners(netflixUser, spotifyUser) {
+async function autoPayOwners(paymentsCollection, netflixUser, spotifyUser) {
     let owners = 0;
     if (netflixUser && netflixExcludedUsers.includes(netflixUser)) {
         await insertPayment(paymentsCollection, netflixUser, Service.NETFLIX);
